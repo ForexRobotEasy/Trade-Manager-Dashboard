@@ -1,0 +1,92 @@
+mql5
+// Trade Manager Dashboard
+// Developer: Forex Robot Easy Team
+// Developer's Site: forexroboteasy.com
+
+// This code implements the necessary functions to create the Trade Manager Dashboard, a powerful tool for managing forex portfolios.
+
+// Function to retrieve and display all current open trades
+void DisplayOpenTrades()
+{
+    // Get all open trades
+    MqlTradeRequest request;
+    MqlTradeResult result;
+    
+    ZeroMemory(request);
+    ZeroMemory(result);
+    
+    request.action = TRADE_ACTION_GET_ALL;
+    
+    if (!OrderSend(request, result))
+    {
+        Print('Error retrieving open trades: ', GetLastError());
+        return;
+    }
+    
+    // Sort trades by currency pair
+    ArraySort(result.orders, 0, WHOLE_ARRAY, SortBySymbol);
+    
+    // Display information about each trade
+    for (int i = 0; i < result.total; i++)
+    {
+        Print('Trade ', i + 1, ' Symbol: ', SymbolName(result.orders[i].symbol));
+        Print('Trade ', i + 1, ' Direction: ', GetTradeDirection(result.orders[i].type));
+        Print('Trade ', i + 1, ' Volume: ', result.orders[i].volume);
+        Print('Trade ', i + 1, ' Open Price: ', result.orders[i].open_price);
+        // Add more trade information as needed
+    }
+}
+
+// Function to monitor and display drawdown or profitability for active trades
+void DisplayDrawdownAndProfit()
+{
+    // Get all active trades
+    MqlTradeRequest request;
+    MqlTradeResult result;
+    
+    ZeroMemory(request);
+    ZeroMemory(result);
+    
+    request.action = TRADE_ACTION_GET_ALL;
+    
+    if (!OrderSend(request, result))
+    {
+        Print('Error retrieving active trades: ', GetLastError());
+        return;
+    }
+    
+    // Display drawdown or profitability for each trade
+    for (int i = 0; i < result.total; i++)
+    {
+        double drawdown = result.orders[i].open_price - result.orders[i].close_price;
+        double profit = result.orders[i].close_price - result.orders[i].open_price;
+        
+        Print('Trade ', i + 1, ' Drawdown: ', drawdown);
+        Print('Trade ', i + 1, ' Profit: ', profit);
+    }
+}
+
+// Helper function to convert trade type to direction
+string GetTradeDirection(int type)
+{
+    if (type == OP_BUY) return 'Buy';
+    if (type == OP_SELL) return 'Sell';
+    return 'Unknown';
+}
+
+// Sort function for sorting trades by currency pair
+int SortBySymbol(const void& lhs, const void& rhs)
+{
+    return StringCompare(SymbolName(lhs.symbol), SymbolName(rhs.symbol));
+}
+
+// Main entry point
+void OnStart()
+{
+    // Display open trades
+    DisplayOpenTrades();
+    
+    // Display drawdown and profit
+    DisplayDrawdownAndProfit();
+}
+
